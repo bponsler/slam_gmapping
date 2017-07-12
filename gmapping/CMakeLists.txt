@@ -8,11 +8,11 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(openslam_gmapping REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(ros2_time REQUIRED)
 find_package(ros2_console REQUIRED)
 
 find_package(Boost REQUIRED signals system thread program_options)
@@ -25,24 +25,26 @@ endforeach()
 set(INCLUDE_DIRS
   ${ament_cmake_INCLUDE_DIRS}
   ${openslam_gmapping_INCLUDE_DIRS}
+  ${sensor_msgs_INCLUDE_DIRS}
   ${nav_msgs_INCLUDE_DIRS}
   ${rclcpp_INCLUDE_DIRS}
   ${tf2_INCLUDE_DIRS}
   ${tf2_ros_INCLUDE_DIRS}
-  ${ros2_time_INCLUDE_DIRS}
   ${ros2_console_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
 )
 include_directories(${INCLUDE_DIRS})
 
 set(LIBRARY_DIRS
   ${ament_cmake_LIBRARY_DIRS}
   ${openslam_gmapping_LIBRARY_DIRS}
+  ${sensor_msgs_LIBRARY_DIRS}
   ${nav_msgs_LIBRARY_DIRS}
   ${rclcpp_LIBRARY_DIRS}
   ${tf2_LIBRARY_DIRS}
   ${tf2_ros_LIBRARY_DIRS}
-  ${ros2_time_LIBRARY_DIRS}
   ${ros2_console_LIBRARY_DIRS}
+  ${Boost_LIBRARY_DIRS}
 )
 
 link_directories(${LIBRARY_DIRS})
@@ -50,11 +52,11 @@ link_directories(${LIBRARY_DIRS})
 set(LIBS
   ${ament_cmake_LIBRARIES}
   ${openslam_gmapping_LIBRARIES}
+  ${sensor_msgs_LIBRARIES}
   ${nav_msgs_LIBRARIES}
   ${rclcpp_LIBRARIES}
   ${tf2_LIBRARIES}
   ${tf2_ros_LIBRARIES}
-  ${ros2_time_LIBRARIES}
   ${ros2_console_LIBRARIES}
   ${Boost_LIBRARIES} 
 )
@@ -75,6 +77,9 @@ install(TARGETS slam_gmapping slam_gmapping_replay
   DESTINATION lib
   RUNTIME
   DESTINATION lib/${PROJECT_NAME})
+
+# Install launch files
+install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
 
 if(BUILD_TESTING)
   if(TARGET tests)
@@ -134,11 +139,11 @@ endif()
 
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(openslam_gmapping)
+ament_export_dependencies(sensor_msgs)
 ament_export_dependencies(nav_msgs)
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(tf2)
 ament_export_dependencies(tf2_ros)
-ament_export_dependencies(ros2_time)
 ament_export_dependencies(ros2_console)
 ament_export_include_directories(${INCLUDE_DIRS})
 ament_export_libraries(slam_gmapping_nodelet ${LIBS})

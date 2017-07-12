@@ -16,7 +16,6 @@
 
 /* Author: Brian Gerkey */
 
-#include "ros2_time/time.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "std_msgs/msg/float64.hpp"
@@ -24,8 +23,6 @@
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/transform_broadcaster.h"
-//#include "message_filters/subscriber.h"  // TODO:
-//#include "tf/message_filter.h"  // TODO:
 
 #include "gmapping/gridfastslam/gridslamprocessor.h"
 #include "gmapping/sensor/sensor_base/sensor.h"
@@ -63,8 +60,8 @@ class SlamGMapping
     rclcpp::service::Service<nav_msgs::srv::GetMap>::SharedPtr ss_;
     tf2_ros::Buffer buffer_;
     tf2_ros::TransformListener tf_;
-    //message_filters::Subscriber<sensor_msgs::msg::LaserScan>* scan_filter_sub_;  // TODO;
-    //tf::MessageFilter<sensor_msgs::msg::LaserScan>* scan_filter_;  // TODO:
+
+    rclcpp::subscription::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     tf2_ros::TransformBroadcaster* tfB_;
 
     GMapping::GridSlamProcessor* gsp_;
@@ -73,7 +70,7 @@ class SlamGMapping
     // symmetrical bounds as that's what gmapping expects)
     std::vector<double> laser_angles_;
     // The pose, in the original laser frame, of the corresponding centered laser with z facing up
-    tf2::Stamped<tf2::Vector3> centered_laser_pose_;  // TODO: is this the right type?
+    tf2::Transform centered_laser_pose_;
     // Depending on the order of the elements in the scan and the orientation of the scan frame,
     // We might need to change the order of the scan
     bool do_reverse_range_;
@@ -85,7 +82,7 @@ class SlamGMapping
     bool got_map_;
     nav_msgs::srv::GetMap::Response map_;
 
-    ros2_time::Duration map_update_interval_;
+    tf2::Duration map_update_interval_;
     tf2::Transform map_to_odom_;
     boost::mutex map_to_odom_mutex_;
     boost::mutex map_mutex_;
@@ -101,7 +98,7 @@ class SlamGMapping
     std::string odom_frame_;
 
     void updateMap(const sensor_msgs::msg::LaserScan& scan);
-    bool getOdomPose(GMapping::OrientedPoint& gmap_pose, const ros2_time::Time& t);
+    bool getOdomPose(GMapping::OrientedPoint& gmap_pose, const builtin_interfaces::msg::Time& t);
     bool initMapper(const sensor_msgs::msg::LaserScan& scan);
     bool addScan(const sensor_msgs::msg::LaserScan& scan, GMapping::OrientedPoint& gmap_pose);
     double computePoseEntropy();

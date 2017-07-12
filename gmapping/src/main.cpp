@@ -26,7 +26,7 @@ main(int argc, char** argv)
   rclcpp::init(argc, argv);
 
   rclcpp::node::Node::SharedPtr node = rclcpp::node::Node::make_shared("slam_gmapping");
-  
+
   SlamGMapping gn(node, node);
   gn.startLiveSlam();
   rclcpp::spin(node);
