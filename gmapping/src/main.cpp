@@ -16,18 +16,20 @@
 
 /* Author: Brian Gerkey */
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include "slam_gmapping.h"
 
 int
 main(int argc, char** argv)
 {
-  ros::init(argc, argv, "slam_gmapping");
+  rclcpp::init(argc, argv);
 
-  SlamGMapping gn;
+  rclcpp::node::Node::SharedPtr node = rclcpp::node::Node::make_shared("slam_gmapping");
+  
+  SlamGMapping gn(node, node);
   gn.startLiveSlam();
-  ros::spin();
+  rclcpp::spin(node);
 
   return(0);
 }

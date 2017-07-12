@@ -14,24 +14,28 @@
  *
  */
 
-#include <ros/ros.h>
-#include <nodelet/nodelet.h>
-#include <pluginlib/class_list_macros.h>
+#include <rclcpp/rclcpp.hpp>
 
 #include "slam_gmapping.h"
 
-class SlamGMappingNodelet : public nodelet::Nodelet
+class SlamGMappingNodelet : public rclcpp::node::Node
 {
   public:
-    SlamGMappingNodelet()  {}
+    SlamGMappingNodelet()
+      :
+      rclcpp::node::Node("gmapping")
+    {
+    }
 
     ~SlamGMappingNodelet() {}
   
     virtual void onInit()
     {
-      NODELET_INFO_STREAM("Initialising Slam GMapping nodelet...");
-      sg_.reset(new SlamGMapping(getNodeHandle(), getPrivateNodeHandle()));
-      NODELET_INFO_STREAM("Starting live SLAM...");
+      //NODELET_INFO_STREAM("Initialising Slam GMapping nodelet...");
+      printf("Initialising Slam GMapping nodelet...\n");
+      sg_.reset(new SlamGMapping(rclcpp::node::Node::SharedPtr(this), rclcpp::node::Node::SharedPtr(this)));
+      //NODELET_INFO_STREAM("Starting live SLAM...");
+      printf("Starting live SLAM...\n");
       sg_->startLiveSlam();
     }
 
@@ -39,4 +43,6 @@ class SlamGMappingNodelet : public nodelet::Nodelet
     boost::shared_ptr<SlamGMapping> sg_;
 };
 
-PLUGINLIB_EXPORT_CLASS(SlamGMappingNodelet, nodelet::Nodelet)
+#include <class_loader/class_loader_register_macro.h>
+
+CLASS_LOADER_REGISTER_CLASS(SlamGMappingNodelet, rclcpp::Node)

@@ -20,7 +20,8 @@
 #include <string>
 
 #include <boost/program_options.hpp>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
+#include <ros2_console/console.hpp>
 
 int
 main(int argc, char** argv)
@@ -67,8 +68,11 @@ main(int argc, char** argv)
     unsigned long int seed = vm["seed"].as<unsigned long int>();
     unsigned long int max_duration_buffer = vm["max_duration_buffer"].as<unsigned long int>();
     
-    ros::init(argc, argv, "slam_gmapping");
-    SlamGMapping gn(seed, max_duration_buffer) ;
+    rclcpp::init(argc, argv);
+
+    rclcpp::node::Node::SharedPtr node = rclcpp::node::Node::make_shared("slam_gmapping");
+    
+    SlamGMapping gn(node, node, seed, max_duration_buffer) ;
     gn.startReplay(bag_fname, scan_topic);
     ROS_INFO("replay stopped.");
 
@@ -79,7 +83,7 @@ main(int argc, char** argv)
     }
     else
     {
-        ros::spin(); // wait so user can save the map
+        rclcpp::spin(node); // wait so user can save the map
     }
     return(0);
     

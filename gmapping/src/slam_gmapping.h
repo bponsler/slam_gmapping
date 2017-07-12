@@ -16,14 +16,16 @@
 
 /* Author: Brian Gerkey */
 
-#include "ros/ros.h"
-#include "sensor_msgs/LaserScan.h"
-#include "std_msgs/Float64.h"
-#include "nav_msgs/GetMap.h"
-#include "tf/transform_listener.h"
-#include "tf/transform_broadcaster.h"
-#include "message_filters/subscriber.h"
-#include "tf/message_filter.h"
+#include "ros2_time/time.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "std_msgs/msg/float64.hpp"
+#include "nav_msgs/srv/get_map.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/transform_broadcaster.h"
+//#include "message_filters/subscriber.h"  // TODO:
+//#include "tf/message_filter.h"  // TODO:
 
 #include "gmapping/gridfastslam/gridslamprocessor.h"
 #include "gmapping/sensor/sensor_base/sensor.h"
@@ -33,9 +35,12 @@
 class SlamGMapping
 {
   public:
-    SlamGMapping();
-    SlamGMapping(ros::NodeHandle& nh, ros::NodeHandle& pnh);
-    SlamGMapping(unsigned long int seed, unsigned long int max_duration_buffer);
+    SlamGMapping(rclcpp::node::Node::SharedPtr nh, rclcpp::node::Node::SharedPtr pnh);
+    SlamGMapping(
+      rclcpp::node::Node::SharedPtr nh,
+      rclcpp::node::Node::SharedPtr pnh,
+      unsigned long int seed,
+      unsigned long int max_duration_buffer);
     ~SlamGMapping();
 
     void init();
@@ -43,21 +48,24 @@ class SlamGMapping
     void startReplay(const std::string & bag_fname, std::string scan_topic);
     void publishTransform();
   
-    void laserCallback(const sensor_msgs::LaserScan::ConstPtr& scan);
-    bool mapCallback(nav_msgs::GetMap::Request  &req,
-                     nav_msgs::GetMap::Response &res);
+    void laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan);
+    bool mapCallback(
+	const std::shared_ptr<rmw_request_id_t> request_header,
+        const std::shared_ptr<nav_msgs::srv::GetMap::Request> req,
+	std::shared_ptr<nav_msgs::srv::GetMap::Response> res);
     void publishLoop(double transform_publish_period);
 
   private:
-    ros::NodeHandle node_;
-    ros::Publisher entropy_publisher_;
-    ros::Publisher sst_;
-    ros::Publisher sstm_;
-    ros::ServiceServer ss_;
-    tf::TransformListener tf_;
-    message_filters::Subscriber<sensor_msgs::LaserScan>* scan_filter_sub_;
-    tf::MessageFilter<sensor_msgs::LaserScan>* scan_filter_;
-    tf::TransformBroadcaster* tfB_;
+    rclcpp::node::Node::SharedPtr node_;
+    rclcpp::publisher::Publisher<std_msgs::msg::Float64>::SharedPtr entropy_publisher_;
+    rclcpp::publisher::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr sst_;
+    rclcpp::publisher::Publisher<nav_msgs::msg::MapMetaData>::SharedPtr sstm_;
+    rclcpp::service::Service<nav_msgs::srv::GetMap>::SharedPtr ss_;
+    tf2_ros::Buffer buffer_;
+    tf2_ros::TransformListener tf_;
+    //message_filters::Subscriber<sensor_msgs::msg::LaserScan>* scan_filter_sub_;  // TODO;
+    //tf::MessageFilter<sensor_msgs::msg::LaserScan>* scan_filter_;  // TODO:
+    tf2_ros::TransformBroadcaster* tfB_;
 
     GMapping::GridSlamProcessor* gsp_;
     GMapping::RangeSensor* gsp_laser_;
@@ -65,7 +73,7 @@ class SlamGMapping
     // symmetrical bounds as that's what gmapping expects)
     std::vector<double> laser_angles_;
     // The pose, in the original laser frame, of the corresponding centered laser with z facing up
-    tf::Stamped<tf::Pose> centered_laser_pose_;
+    tf2::Stamped<tf2::Vector3> centered_laser_pose_;  // TODO: is this the right type?
     // Depending on the order of the elements in the scan and the orientation of the scan frame,
     // We might need to change the order of the scan
     bool do_reverse_range_;
@@ -75,10 +83,10 @@ class SlamGMapping
     bool got_first_scan_;
 
     bool got_map_;
-    nav_msgs::GetMap::Response map_;
+    nav_msgs::srv::GetMap::Response map_;
 
-    ros::Duration map_update_interval_;
-    tf::Transform map_to_odom_;
+    ros2_time::Duration map_update_interval_;
+    tf2::Transform map_to_odom_;
     boost::mutex map_to_odom_mutex_;
     boost::mutex map_mutex_;
 
@@ -92,10 +100,10 @@ class SlamGMapping
     std::string map_frame_;
     std::string odom_frame_;
 
-    void updateMap(const sensor_msgs::LaserScan& scan);
-    bool getOdomPose(GMapping::OrientedPoint& gmap_pose, const ros::Time& t);
-    bool initMapper(const sensor_msgs::LaserScan& scan);
-    bool addScan(const sensor_msgs::LaserScan& scan, GMapping::OrientedPoint& gmap_pose);
+    void updateMap(const sensor_msgs::msg::LaserScan& scan);
+    bool getOdomPose(GMapping::OrientedPoint& gmap_pose, const ros2_time::Time& t);
+    bool initMapper(const sensor_msgs::msg::LaserScan& scan);
+    bool addScan(const sensor_msgs::msg::LaserScan& scan, GMapping::OrientedPoint& gmap_pose);
     double computePoseEntropy();
     
     // Parameters used by GMapping
@@ -131,7 +139,7 @@ class SlamGMapping
     double lasamplerange_;
     double lasamplestep_;
     
-    ros::NodeHandle private_nh_;
+    rclcpp::node::Node::SharedPtr private_nh_;
     
     unsigned long int seed_;
     
