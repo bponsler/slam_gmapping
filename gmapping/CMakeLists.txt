@@ -17,11 +17,6 @@ find_package(ros2_console REQUIRED)
 
 find_package(Boost REQUIRED signals system thread program_options)
 
-get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
-  message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-
 set(INCLUDE_DIRS
   ${ament_cmake_INCLUDE_DIRS}
   ${openslam_gmapping_INCLUDE_DIRS}

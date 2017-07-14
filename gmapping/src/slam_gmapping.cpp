@@ -268,10 +268,7 @@ void SlamGMapping::startLiveSlam()
   entropy_publisher_ = private_nh_->create_publisher<std_msgs::msg::Float64>("entropy", 1);
 
   // TODO: make sst_ latched
-  rmw_qos_profile_t qos = rmw_qos_profile_default;
-  qos.depth = 1;
-  qos.durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
-  sst_ = node_->create_publisher<nav_msgs::msg::OccupancyGrid>("map", qos);
+  sst_ = node_->create_publisher<nav_msgs::msg::OccupancyGrid>("map");
   
   // TODO: make sstm_ latched
   sstm_ = node_->create_publisher<nav_msgs::msg::MapMetaData>("map_metadata", 1);
